@@ -63,6 +63,7 @@ void check_empty_lines(bool *empty_line, bool *prev_empty_line, char buf[]) {
     }
 }
 
+//ДОРАБОТАТЬ! НЕВЕРНО ОБРАБАТЫВАЕТ СПЕЦ.СИМВОЛ!!!! УСЛОВИЕ НЕВЕРНОЕ!
 void nonprinting_chars(char buf[]) {
     for (int i = 0; i < (int)strlen(buf); i++) {
         unsigned char uc = buf[i];
@@ -77,10 +78,7 @@ void nonprinting_chars(char buf[]) {
             }
             uc = uc & 127;
             if (uc < 32) {
-                if (uc == 9 || uc == 10 || uc == 12) {
-                    continue;
-                }
-                for (int j = (int)strlen(buf) + 3; j > i + 3; j--) {
+                for (int j = (int)strlen(buf) + 4; j > i + 3; j--) {
                     buf[j] = buf[j - 3];
                 }
                 buf[i + 3] = (uc & 127) + 64;
@@ -88,7 +86,7 @@ void nonprinting_chars(char buf[]) {
                 buf[i + 1] = '-';
                 buf[i] = 'M';
             } else {
-                for (int j = (int)strlen(buf) + 2; j > i + 2; j--) {
+                for (int j = (int)strlen(buf) + 3; j > i + 2; j--) {
                     buf[j] = buf[j - 2];
                 }
                 buf[i + 1] = '-';

@@ -5,6 +5,7 @@ void output(char *files[], Grep_flags *flags, int file_count, char *pattern) {
     char buf[1000];
     char buf_output[1000];
     int count_rows;
+    char *filename = "";
 
     for (int i = 0; i < file_count; i++) {
         FILE *f = fopen(files[i], "r");
@@ -13,6 +14,10 @@ void output(char *files[], Grep_flags *flags, int file_count, char *pattern) {
                 printf("%s: Нет такого файла или каталога\n", files[i]);
             }
             continue;
+        }
+        
+        if (flags->many_files) {
+            filename = strcat(files[i], ":");
         }
 
         count_rows = 0;
@@ -31,19 +36,19 @@ void output(char *files[], Grep_flags *flags, int file_count, char *pattern) {
                 output_var = !output_var;
             }
 
-            if (flags->is_count_rows) {
+            if (flags->is_count_rows) {  // флаг -c выводит колво строк
                 if (output_var) {
                     count_rows++;
                 }
             } else {
                 if (output_var) {
-                    printf("%s", buf_output);
+                    printf("%s%s", filename, buf_output);
                 }
             }
         }
 
         if (flags->is_count_rows) {
-            printf("%d\n", count_rows);
+            printf("%s%d\n", filename, count_rows);
         }
 
         fclose(f);

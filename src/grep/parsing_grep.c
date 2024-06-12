@@ -16,6 +16,9 @@ char *parse_args(int argc, char *argv[], Grep_flags *flags, char *files[], int *
                     case 's':
                         flags->is_file_error_ignore = true;
                         break;
+                    case 'c':
+                        flags->is_count_rows = true;
+                        break;
                     default:
                         return argv[i];
                 }

@@ -32,7 +32,9 @@ void output(char *files[], Grep_flags *flags, int file_count, char *pattern) {
             }
 
             if (flags->is_count_rows) {
-                count_rows++;
+                if (output_var) {
+                    count_rows++;
+                }
             } else {
                 if (output_var) {
                     printf("%s", buf_output);
@@ -41,9 +43,9 @@ void output(char *files[], Grep_flags *flags, int file_count, char *pattern) {
         }
 
         if (flags->is_count_rows) {
-            printf("%d", count_rows);
+            printf("%d\n", count_rows);
         }
-        
+
         fclose(f);
     }
 }

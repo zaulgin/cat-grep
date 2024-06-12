@@ -7,6 +7,7 @@ typedef struct {
     bool is_register_ignore;  // нумерует непустые строки
     bool is_invert_results;   // инвертирует смысл поиска
     bool is_file_error_ignore;  // подавляет сообщения об ошибках несуществующего файла
+    bool is_count_rows;  // выводит количество найденных свопадений в строках
 } Grep_flags;
 
 #endif

@@ -14,7 +14,7 @@ int main(int argc, char *argv[]) {
     char *error_parse_args = parse_args(argc, argv, &flags, files, &file_count);
     if (error_parse_args != NULL) {
         printf("Неверный ключ %s", error_parse_args);
-        return 0;
+        return 1;
     }
 
     print_files(files, &flags, file_count);

@@ -2,7 +2,6 @@
 
 void print_files(char *files[], Cat_flags *flags, int file_count) {
     int row_count = 1;
-    char buf[2000];
 
     for (int i = 0; i < file_count; i++) {
         FILE *f = fopen(files[i], "r");
@@ -11,106 +10,91 @@ void print_files(char *files[], Cat_flags *flags, int file_count) {
             continue;
         }
 
-        static bool empty_line = false;
-        static bool prev_empty_line = false;
+        char ch;
+        char tmp_ch;
 
-        while (fgets(buf, 2000, f)) {
-            check_empty_lines(&empty_line, &prev_empty_line, buf);
+        int empty_line_count = 0;
 
-            if (flags->is_delete_empty_line && empty_line && prev_empty_line) {
-                continue;
+        while ((ch = fgetc(f)) != EOF) {
+            bool tabs = false;
+            if (flags->is_delete_empty_line) {
+                if (tmp_ch == '\n') {
+                    empty_line_count++;
+                } else {
+                    empty_line_count = 0;
+                }
+                if (ch == '\n' && empty_line_count > 1) {
+                    tmp_ch = ch;
+                    continue;
+                }
             }
 
             if (flags->is_all_line_numbers) {
-                printf("    %d  ", row_count);
-                row_count++;
+                if (tmp_ch == '\n' || row_count == 1) {
+                    print_line_number(&row_count);
+                }
             }
 
             if (flags->is_non_empty_line_numbers) {
-                if (buf[0] != '\0' && buf[0] != '\n') {
-                    printf("    %d  ", row_count);
-                    row_count++;
+                if ((tmp_ch == '\n' && ch != '\n') || row_count == 1) {
+                    print_line_number(&row_count);
                 }
             }
 
             if (flags->is_end_of_string) {
-                dollar_end_of_string(buf);
-            }
-
-            if (flags->is_nonprinting_chars) {
-                nonprinting_chars(buf);
+                if (ch == '\n') {
+                    fputc('$', stdout);
+                }
             }
 
             if (flags->is_tabs) {
-                tab_change(buf);
+                if (ch == '\t') {
+                    fputs("^I", stdout);
+                    tabs = true;
+                }
             }
 
-            printf("%s", buf);
+            if (flags->is_nonprinting_chars) {
+                if ((unsigned char)ch > 127) {
+                    char buf[] = {ch, 0};
+                    char uc;
+                    for (int i = 0; i < (int)strlen(buf); i++) {
+                        uc = (unsigned char)buf[i];
+                        uc = uc & 127;
+                        if (uc < 32) {
+                            printf("M-^%c", uc + 64);
+                        } else {
+                            printf("M-%c", uc);
+                        }
+                    }
+                    tmp_ch = ch;
+                    continue;
+                } else if ((unsigned char)ch < 32 && ch != 9 && ch != 10 && ch != 12) {
+                    printf("^%c", ch + 64);
+                    tmp_ch = ch;
+                    continue;
+                } else if (ch == 127) {
+                    printf("^?");
+                    tmp_ch = ch;
+                    continue;
+                } else if (ch == 12) {
+                    printf("^L");
+                    tmp_ch = ch;
+                    continue;
+                }
+            }
+
+            if (!tabs) {
+                fputc(ch, stdout);
+            }
+            tmp_ch = ch;
+            tabs = false;
         }
         fclose(f);
     }
 }
 
-void check_empty_lines(bool *empty_line, bool *prev_empty_line, char buf[]) {
-    if (buf[0] == '\n' || buf[0] == '\0') {
-        if (*empty_line) {
-            *prev_empty_line = true;
-        }
-        *empty_line = true;
-    } else {
-        *empty_line = false;
-        *prev_empty_line = false;
-    }
-}
-
-//ДОРАБОТАТЬ! НЕВЕРНО ОБРАБАТЫВАЕТ СПЕЦ.СИМВОЛ!!!! УСЛОВИЕ НЕВЕРНОЕ!
-void nonprinting_chars(char buf[]) {
-    for (int i = 0; i < (int)strlen(buf); i++) {
-        unsigned char uc = buf[i];
-        if (uc >= 127) {
-            if (uc == 127) {
-                for (int j = (int)strlen(buf) + 2; j > i + 1; j--) {
-                    buf[j] = buf[j - 1];
-                }
-                buf[i] = '^';
-                buf[i + 1] = '?';
-                continue;
-            }
-            uc = uc & 127;
-            if (uc < 32) {
-                for (int j = (int)strlen(buf) + 4; j > i + 3; j--) {
-                    buf[j] = buf[j - 3];
-                }
-                buf[i + 3] = (uc & 127) + 64;
-                buf[i + 2] = '^';
-                buf[i + 1] = '-';
-                buf[i] = 'M';
-            } else {
-                for (int j = (int)strlen(buf) + 3; j > i + 2; j--) {
-                    buf[j] = buf[j - 2];
-                }
-                buf[i + 1] = '-';
-                buf[i + 2] = uc & 127;
-                buf[i] = 'M';
-            }
-        }
-    }
-}
-
-void tab_change(char buf[]) {
-    for (int i = 0; i < (int)strlen(buf); i++) {
-        if (buf[i] == '\t') {
-            for (int j = (int)strlen(buf) + 2; j > i + 1; j--) {
-                buf[j] = buf[j - 1];
-            }
-            buf[i] = '^';
-            buf[i + 1] = 'I';
-        }
-    }
-}
-
-void dollar_end_of_string(char buf[]) {
-    char *d = strchr(buf, '\n');
-    *d = '$';
-    strcat(buf, "\n");
+void print_line_number(int *row_count) {
+    printf("%*d\t", 6, *row_count);
+    (*row_count)++;
 }

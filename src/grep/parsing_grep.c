@@ -22,6 +22,9 @@ char *parse_args(int argc, char *argv[], Grep_flags *flags, Grep_behavior *behav
                     case 'n':
                         flags->is_num_row = true;
                         break;
+                    case 'l':
+                        flags->is_only_filename = true;
+                        break;
                     default:
                         return argv[i];
                 }

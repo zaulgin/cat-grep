@@ -18,7 +18,7 @@ int main(int argc, char *argv[]) {
     char *pattern = malloc(1000);
 
     int file_count = 0;
-    Grep_flags flags = {false, false, false, false, false};
+    Grep_flags flags = {false, false, false, false, false, false};
     Grep_behavior behavior = {false, false};
 
     char *error_parse_args = parse_args(argc, argv, &flags, &behavior, files, &file_count, &pattern);

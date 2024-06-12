@@ -1,30 +1,20 @@
 CC=gcc
 CFLAGS=-c -Wall -Wextra -Werror -std=c11
 LDFLAGS=-Wall -Wextra -Werror
-EXECUTABLE_CAT=s21_cat
-EXECUTABLE_GREP=s21_grep
+EXECUTABLE=s21_cat
 CATDIR=cat/
-GREPDIR=grep/
-SOURCES_CAT=$(CATDIR)s21_cat.c $(CATDIR)parsing.c $(CATDIR)cat_functions.c
-SOURCES_GREP=$(GREPDIR)s21_grep.c $(GREPDIR)parsing_grep.c $(GREPDIR)grep_functions.c
-OBJECTS_CAT=$(SOURCES_CAT:.c=.o)
-OBJECTS_GREP=$(SOURCES_GREP:.c=.o)
+SOURCES=$(CATDIR)s21_cat.c $(CATDIR)parsing.c $(CATDIR)cat_functions.c
+OBJECTS=$(SOURCES:.c=.o)
 
-all: $(EXECUTABLE_CAT) $(EXECUTABLE_GREP)
-
-$(EXECUTABLE_CAT): $(OBJECTS_CAT) 
-	$(CC) $(LDFLAGS) $(OBJECTS_CAT) -o $@
-
-$(EXECUTABLE_GREP): $(OBJECTS_GREP)
-	$(CC) $(LDFLAGS) $(OBJECTS_GREP) -o $@
+all: $(EXECUTABLE)
+	
+$(EXECUTABLE): $(OBJECTS) 
+	$(CC) $(LDFLAGS) $(OBJECTS) -o $@
 
 $(CATDIR)/%.o: $(CATDIR)/%.c
 	$(CC) $(CFLAGS) $< -o $@
 
-$(GREPDIR)/%.o: $(GREPDIR)/%.c
-	$(CC) $(CFLAGS) $< -o $@
-
 clean:
-	rm -rf $(OBJECTS_CAT) $(OBJECTS_GREP) $(EXECUTABLE_CAT) $(EXECUTABLE_GREP)
+	rm -rf $(OBJECTS) $(EXECUTABLE)
 
 rebuild: clean all

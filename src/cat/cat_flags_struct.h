@@ -3,12 +3,6 @@
 #define CAT_FLAGS_H
 
 // TODO флаги переделать, отдефайнить и запихать в статик массив стрингов
-#define non_empty_line_numbers "-b"
-#define end_of_string "-e"
-#define all_line_numbers "-n"
-#define delete_empty_line "-s"
-#define tabs "-t"
-#define non_printing "v"
 #define GNU_non_empty_line_numbers "--number-nonblank"
 #define GNU_all_line_numbers "--number"
 #define GNU_delete_empty_line "--squeeze-blank"

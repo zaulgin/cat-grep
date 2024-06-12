@@ -8,6 +8,11 @@ char *parse_args(int argc, char *argv[], Cat_flags *flags, char *files[], int *f
         if (argv[i][0] == '-' && argv[i][1] != '-') {
             for (int j = 1; j < (int)strlen(argv[i]); j++) {
                 switch (argv[i][j]) {
+                    case 'A':
+                        flags->is_nonprinting_chars = true;
+                        flags->is_tabs = true;
+                        flags->is_end_of_string = true;
+                        break;
                     case 't':
                         flags->is_nonprinting_chars = true;
                         flags->is_tabs = true;

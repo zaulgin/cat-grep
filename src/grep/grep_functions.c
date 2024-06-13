@@ -1,11 +1,16 @@
 #include "grep_functions.h"
 
-void output(char *files[], Grep_flags flags, Grep_behavior behavior,int file_count, char *pattern) {
+void output(char *files[], Grep_flags flags, Grep_behavior behavior, int file_count, char *pattern) {
     bool output_var;  // переменная для флага -v
     char buf[1000];
     char buf_output[1000];
     int count_rows, row_num;
     char prefix[100] = "";
+
+    // Преобразование шаблона в нижний регистр, если установлен флаг -i
+    if (flags.is_register_ignore) {
+        str_lower(pattern);
+    }
 
     for (int i = 0; i < file_count; i++) {
         FILE *f = fopen(files[i], "r");
@@ -18,6 +23,7 @@ void output(char *files[], Grep_flags flags, Grep_behavior behavior,int file_cou
 
         count_rows = 0;
         row_num = 0;
+        bool file_printed = false;  // флаг, чтобы избежать повторного вывода имени файла
 
         while (fgets(buf, 1000, f)) {
             strcpy(buf_output, buf);
@@ -28,8 +34,7 @@ void output(char *files[], Grep_flags flags, Grep_behavior behavior,int file_cou
                 strcat(prefix, ":");
             }
 
-            if (flags.is_register_ignore) {  // флаг -i - игнорит регистр
-                pattern = str_lower(pattern);
+            if (flags.is_register_ignore) {   // Преобразование строки в нижний регистр, если установлен флаг -i
                 str_lower(buf);
             }
 
@@ -39,23 +44,30 @@ void output(char *files[], Grep_flags flags, Grep_behavior behavior,int file_cou
                 output_var = !output_var;
             }
 
-            if (flags.is_num_row) {
-                char temp[10];
-                itoa(row_num, temp, 10);
-                strcat(prefix, temp);
-                strcat(prefix, ":");
-            }
-
-            if (flags.is_count_rows) {  // флаг -c выводит колво строк
-                if (output_var) {
-                    count_rows++;
+            if (output_var) {
+                if (flags.is_only_filename) {  // флаг -l выводит имя файла
+                    printf("%s\n", files[i]);
+                    file_printed = true;
+                    break;
                 }
-            } else {
-                if (output_var) {
+                if (flags.is_count_rows) {  // флаг -c выводит кол-во строк
+                    count_rows++;
+                } else {
+                    if (flags.is_num_row) {
+                        char temp[10];
+                        sprintf(temp, "%d", row_num);
+                        strcat(prefix, temp);
+                        strcat(prefix, ":");
+                    }
                     printf("%s%s", prefix, buf_output);
                 }
             }
             strcpy(prefix, "");
+        }
+
+        if (file_printed) {
+            fclose(f);
+            continue;
         }
 
         if (flags.is_count_rows) {

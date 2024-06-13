@@ -8,6 +8,7 @@ typedef struct {
     bool is_file_error_ignore;  // подавляет сообщения об ошибках несуществующего файла
     bool is_count_rows;  // выводит количество найденных свопадений в строках
     bool is_num_row; //выводит номер строки в файле
+    bool is_only_filename;  //выводит только наименование файла
 
 } Grep_flags;
 

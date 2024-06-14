@@ -3,7 +3,7 @@
 сделать проверку valgrind
 */
 
-
+#include <regex.h>
 #include <stdlib.h>
 
 #include "parsing_grep.h"
@@ -14,21 +14,21 @@ int main(int argc, char *argv[]) {
         return 0;
     }
 
+    regex_t regex;
     char *files[argc];
-    char *pattern = malloc(1000);
+    // char *pattern = malloc(1000);
 
     int file_count = 0;
     Grep_flags flags = {false, false, false, false, false, false};
     Grep_behavior behavior = {false, false};
 
-    char *error_parse_args = parse_args(argc, argv, &flags, &behavior, files, &file_count, &pattern);
+    char *error_parse_args = parse_args(argc, argv, &flags, &behavior, files, &file_count, &regex);
     if (error_parse_args != NULL) {
         printf("Неверный ключ %s", error_parse_args);
         return 1;
     }
 
-    output(files, flags, behavior, file_count, pattern);
-    free(pattern);
+    output(files, flags, behavior, file_count, regex);
 
     return 0;
 }

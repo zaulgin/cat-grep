@@ -1,21 +1,31 @@
 #include "grep_functions.h"
+// #define DEBUG 1
 
-bool *reg_handle(int pattern_c, char *patterns[], regex_t *regex, int regcomp_val) {
-    int res_regcomp;
-    bool res_reg_handle;
-    for (int i = 0; i < pattern_c; i++) {
-        res_regcomp = regcomp(&regex, patterns[i], regcomp_val);
-        if (res_regcomp) {
-            printf("Ошибка компиляции рег. выражения");
-            return NULL;
-        }
-        if (regexec(&regex, buf, 0, NULL, 0)) {
-            var_output = true;
-        }
+void free_string(int count, char *string[]) {
+    for (int i = 0; i < count; i++) {
+        free(string[i]);
     }
 }
 
-void output(char *files[], Grep_flags flags, Grep_behavior behavior, int file_count, regex_t regex,
+bool reg_handle(int pattern_c, char *patterns[], regex_t *regex, int regcomp_val, char buf[]) {
+    bool res = false;
+    for (int i = 0; i < pattern_c; i++) {
+        if (regcomp(regex, patterns[i], regcomp_val)) {
+            regfree(regex);
+            printf("Ошибка компиляции рег. выражения\n");
+            exit(1);
+        }
+        if (!regexec_result(regex, buf)) {
+            res = true;
+        }
+        regfree(regex);
+    }
+    return res;
+}
+
+int regexec_result(regex_t *regex, char buf[]) { return regexec(regex, buf, 0, NULL, 0) == 0 ? 0 : 1; }
+
+void output(char *files[], Grep_flags flags, Grep_behavior behavior, int file_c, regex_t regex,
             char *patterns[], int pattern_c) {
     int regcomp_val = 0;
 
@@ -23,11 +33,19 @@ void output(char *files[], Grep_flags flags, Grep_behavior behavior, int file_co
         regcomp_val = REG_ICASE;
     }
 
-    if (file_count > 1 && !flags.is_filename_ignore) {
+    if (file_c > 1 && !flags.is_filename_ignore) {
         behavior.many_files = true;
     }
 
-    for (int i = 0; i < file_count; i++) {
+#ifdef DEBUG
+    printf("Дебаг паттернов-----------\n");
+    for (int i = 0; i < pattern_c; i++) {
+        printf("%s\n", patterns[i]);
+    }
+    printf("Конец дебага паттернов-----------\n");
+#endif
+
+    for (int i = 0; i < file_c; i++) {
         FILE *f = fopen(files[i], "r");
         if (f == NULL) {
             if (!flags.is_file_error_ignore) {  // флаг -s - не выводит сообщение об
@@ -43,24 +61,24 @@ void output(char *files[], Grep_flags flags, Grep_behavior behavior, int file_co
         }
         // флаг, чтобы избежать повторного вывода имени файла
         print_grep(flags, prefix, patterns, pattern_c, regex, regcomp_val, f, files[i]);
-        // fclose(f);
+        fclose(f);
     }
 }
 
 void print_grep(Grep_flags flags, char prefix[], char *patterns[], int pattern_c, regex_t regex,
                 int regcomp_val, FILE *f, char filename[]) {
+    char buf[1000];
     int count_rows = 0;
     int row_num = 0;
     bool var_output = false;
     bool file_printed = false;
-    char buf[1000];
 
-    int res_regcomp;
-    int res_regexec;
     while (fgets(buf, 1000, f)) {
         delete_new_line(buf);
 
         row_num++;
+
+        var_output = reg_handle(pattern_c, patterns, &regex, regcomp_val, buf);
 
         if (flags.is_invert_results) {  // флаг -v - инвертирует результаты
             var_output = !var_output;
@@ -91,7 +109,6 @@ void print_grep(Grep_flags flags, char prefix[], char *patterns[], int pattern_c
     }
 
     if (file_printed) {
-        fclose(f);
         return;
     }
 

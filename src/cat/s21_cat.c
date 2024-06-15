@@ -1,13 +1,12 @@
 #include "parsing.h"
 
-int main(int argc, char *argv[]) {
+int main(int argc, const char *argv[]) {
     if (argc < 2) {
         printf("Недостаточно аргументов\n");
         return 0;
     }
 
-    char *files[argc];
-
+    const char *files[argc];
     int file_count = 0;
     Cat_flags flags = {false, false, false, false, false, false};
 

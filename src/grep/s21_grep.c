@@ -20,7 +20,7 @@ int main(int argc, char *argv[]) {
 
     int file_count = 0;
     int pattern_c = 0;
-    Grep_flags flags = {false, false, false, false, false, false, false, false};
+    Grep_flags flags = {false, false, false, false, false, false, false, false, false, false};
     Grep_behavior behavior = {false, false};
 
     char *error_parse_args =

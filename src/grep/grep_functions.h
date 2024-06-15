@@ -10,6 +10,8 @@
 
 void output(char *files[], Grep_flags flags, Grep_behavior behavior, int file_count, regex_t regex,
             char *patterns[], int pattern_c);
-char *str_lower(char *string);
+void delete_new_line(char buf[]);
+void print_grep(Grep_flags flags, char prefix[], char *patterns[], int pattern_c, regex_t regex,
+                int regcomp_val, FILE *f, char filename[]);
 
 #endif

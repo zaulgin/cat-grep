@@ -1,16 +1,18 @@
 #include "grep_functions.h"
 
-void output(char *files[], Grep_flags flags, Grep_behavior behavior, int file_count, regex_t regex) {
+void output(char *files[], Grep_flags flags, Grep_behavior behavior, int file_count, regex_t regex,
+            char *patterns[], int pattern_c) {
     char buf[1000];
-    char buf_output[1000];
     int count_rows, row_num;
     char prefix[100] = "";
-    int result;
+    int res_regcomp;
+    int res_regexec;
+    int regcomp_value = 0;
+    bool var_output = false;
 
-    // Преобразование шаблона в нижний регистр, если установлен флаг -i
-    // if (flags.is_register_ignore) {
-    //     str_lower(pattern);
-    // }
+    if (flags.is_register_ignore) {
+        regcomp_value = REG_ICASE;
+    }
 
     for (int i = 0; i < file_count; i++) {
         FILE *f = fopen(files[i], "r");
@@ -27,7 +29,6 @@ void output(char *files[], Grep_flags flags, Grep_behavior behavior, int file_co
         bool file_printed = false;  // флаг, чтобы избежать повторного вывода имени файла
 
         while (fgets(buf, 1000, f)) {
-            strcpy(buf_output, buf);
             row_num++;
 
             if (behavior.many_files) {
@@ -35,18 +36,23 @@ void output(char *files[], Grep_flags flags, Grep_behavior behavior, int file_co
                 strcat(prefix, ":");
             }
 
-            // if (flags.is_register_ignore) {  // Преобразование строки в нижний
-            //                                  // регистр, если установлен флаг -i
-            //     str_lower(buf);
-            // }
-
-            result = regexec(&regex, buf, 0, NULL, 0);
-
-            if (flags.is_invert_results) {  // флаг -v - инвертирует результаты
-                result = !result;
+            for (int i = 0; i < pattern_c; i++) {
+                res_regcomp = regcomp(&regex, patterns[i], regcomp_value);
+                if (res_regcomp) {
+                    printf("ошибка компиляции рег. выражения");
+                    return;
+                }
+                res_regexec = regexec(&regex, buf, 0, NULL, 0);
+                if (!res_regexec) {
+                    var_output = true;
+                }
             }
 
-            if (!result) {
+            if (flags.is_invert_results) {  // флаг -v - инвертирует результаты
+                var_output = !var_output;
+            }
+
+            if (var_output) {
                 if (flags.is_only_filename) {  // флаг -l выводит имя файла
                     printf("%s\n", files[i]);
                     file_printed = true;
@@ -61,10 +67,11 @@ void output(char *files[], Grep_flags flags, Grep_behavior behavior, int file_co
                         strcat(prefix, temp);
                         strcat(prefix, ":");
                     }
-                    printf("%s%s", prefix, buf_output);
+                    printf("%s%s", prefix, buf);
                 }
             }
             strcpy(prefix, "");
+            var_output = false;
         }
 
         if (file_printed) {

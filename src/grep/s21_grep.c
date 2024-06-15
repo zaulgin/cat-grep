@@ -16,19 +16,21 @@ int main(int argc, char *argv[]) {
 
     regex_t regex;
     char *files[argc];
-    // char *pattern = malloc(1000);
+    char *patterns[1000];
 
     int file_count = 0;
-    Grep_flags flags = {false, false, false, false, false, false};
+    int pattern_c = 0;
+    Grep_flags flags = {false, false, false, false, false, false, false, false};
     Grep_behavior behavior = {false, false};
 
-    char *error_parse_args = parse_args(argc, argv, &flags, &behavior, files, &file_count, &regex);
+    char *error_parse_args =
+        parse_args(argc, argv, &flags, &behavior, files, &file_count, patterns, &pattern_c);
     if (error_parse_args != NULL) {
         printf("Неверный ключ %s", error_parse_args);
         return 1;
     }
 
-    output(files, flags, behavior, file_count, regex);
+    output(files, flags, behavior, file_count, regex, patterns, pattern_c);
 
     return 0;
 }

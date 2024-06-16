@@ -1,92 +1,164 @@
 #include "grep_functions.h"
 
-void output(char *files[], Grep_flags flags, Grep_behavior behavior, int file_count, regex_t regex) {
-    char buf[1000];
-    char buf_output[1000];
-    int count_rows, row_num;
-    char prefix[100] = "";
-    int result;
+void handler(char *files[], Option o, bool many_files, int file_c, Pattern *p) {
+  int regcomp_val = o.is_register_ignore ? REG_ICASE : 0;
+  many_files = (file_c > 1 && !o.is_filename_ignore);
 
-    // Преобразование шаблона в нижний регистр, если установлен флаг -i
-    // if (flags.is_register_ignore) {
-    //     str_lower(pattern);
-    // }
-
-    for (int i = 0; i < file_count; i++) {
-        FILE *f = fopen(files[i], "r");
-        if (f == NULL) {
-            if (!flags.is_file_error_ignore) {  // флаг -s - не выводит сообщение об
-                                                // ошибке если true
-                printf("%s: Нет такого файла или каталога\n", files[i]);
-            }
-            continue;
-        }
-
-        count_rows = 0;
-        row_num = 0;
-        bool file_printed = false;  // флаг, чтобы избежать повторного вывода имени файла
-
-        while (fgets(buf, 1000, f)) {
-            strcpy(buf_output, buf);
-            row_num++;
-
-            if (behavior.many_files) {
-                strcat(prefix, files[i]);
-                strcat(prefix, ":");
-            }
-
-            // if (flags.is_register_ignore) {  // Преобразование строки в нижний
-            //                                  // регистр, если установлен флаг -i
-            //     str_lower(buf);
-            // }
-
-            result = regexec(&regex, buf, 0, NULL, 0);
-
-            if (flags.is_invert_results) {  // флаг -v - инвертирует результаты
-                result = !result;
-            }
-
-            if (!result) {
-                if (flags.is_only_filename) {  // флаг -l выводит имя файла
-                    printf("%s\n", files[i]);
-                    file_printed = true;
-                    break;
-                }
-                if (flags.is_count_rows) {  // флаг -c выводит кол-во строк
-                    count_rows++;
-                } else {
-                    if (flags.is_num_row) {
-                        char temp[11];
-                        sprintf(temp, "%d", row_num);
-                        strcat(prefix, temp);
-                        strcat(prefix, ":");
-                    }
-                    printf("%s%s", prefix, buf_output);
-                }
-            }
-            strcpy(prefix, "");
-        }
-
-        if (file_printed) {
-            fclose(f);
-            continue;
-        }
-
-        if (flags.is_count_rows) {
-            strcat(prefix, files[i]);
-            strcat(prefix, ":");
-            printf("%s%d\n", prefix, count_rows);
-        }
-
-        fclose(f);
+  for (int i = 0; i < file_c; i++) {
+    FILE *fstream = fopen(files[i], "r");
+    if (fstream == NULL) {
+      if (!o.is_file_error_ignore) {
+        fprintf(stderr, "grep: %s: No such file or directory\n", files[i]);
+      }
+      continue;
     }
+    char prefix[1000] = "";
+    if (many_files) {
+      concat_prefix(prefix, files[i]);
+    }
+
+    if (o.is_only_filename) {
+      print_filename(o, p, regcomp_val, fstream, files[i]);
+    } else if (o.is_match_count) {
+      print_match_c(o, prefix, p, regcomp_val, fstream);
+    } else if (o.is_only_match) {
+      print_matches(o, prefix, p, regcomp_val, fstream);
+    } else {
+      print_string(o, prefix, p, regcomp_val, fstream);
+    }
+
+    fclose(fstream);
+  }
 }
 
-char *str_lower(char *string) {
-    unsigned char *p = (unsigned char *)string;
-    while (*p) {
-        *p = tolower(*p);
-        p++;
+void print_match_c(Option o, char prefix[], Pattern *p, int regcomp_val,
+                   FILE *fstream) {
+  char buf[1000];
+  int match_c = 0;
+  while (fgets(buf, sizeof(buf), fstream)) {
+    delete_new_line(buf);
+    if (reg_handler(p, regcomp_val, buf, o.is_invert_results)) {
+      match_c++;
     }
-    return string;
+  }
+  printf("%s%d\n", prefix, match_c);
+}
+
+void print_filename(Option o, Pattern *p, int regcomp_val, FILE *fstream,
+                    char *filename) {
+  char buf[1000];
+  while (fgets(buf, sizeof(buf), fstream)) {
+    delete_new_line(buf);
+    if (reg_handler(p, regcomp_val, buf, o.is_invert_results)) {
+      printf("%s\n", filename);
+      break;
+    }
+  }
+}
+
+void print_matches(Option o, char prefix[], Pattern *p, int regcomp_val,
+                   FILE *fstream) {
+  char buf[1000];
+  int row_num = 0;
+
+  while (fgets(buf, sizeof(buf), fstream)) {
+    delete_new_line(buf);
+    if (o.is_num_row) {
+      row_num++;
+    }
+
+    int start = 0;
+    while (start < (int)strlen(buf)) {
+      regmatch_t earliest_match = {.rm_so = -1, .rm_eo = -1};
+
+      for (int i = 0; i < p->count; i++) {
+        regex_t regex;
+        if (regcomp(&regex, p->val[i], regcomp_val)) {
+          perror("Ошибка компиляции рег. выражения\n");
+          exit(1);
+        }
+
+        regmatch_t pmatch;
+        if (!regexec(&regex, buf + start, 1, &pmatch, 0)) {
+          if (earliest_match.rm_so == -1 ||
+              pmatch.rm_so < earliest_match.rm_so) {
+            earliest_match = pmatch;
+          }
+        }
+        regfree(&regex);
+      }
+
+      if (earliest_match.rm_so != -1 && !o.is_invert_results) {
+        printf("%s", prefix);
+        if (o.is_num_row) {
+          printf("%d:", row_num);
+        }
+        printf("%.*s\n", (int)(earliest_match.rm_eo - earliest_match.rm_so),
+               buf + start + earliest_match.rm_so);
+        start += earliest_match.rm_eo;
+      } else {
+        break;
+      }
+    }
+  }
+}
+
+void print_string(Option o, char prefix[], Pattern *p, int regcomp_val,
+                  FILE *fstream) {
+  char buf[1000];
+  int row_num = 0;
+
+  while (fgets(buf, sizeof(buf), fstream)) {
+    delete_new_line(buf);
+    if (o.is_num_row) {
+      row_num++;
+    }
+
+    if (reg_handler(p, regcomp_val, buf, o.is_invert_results)) {
+      printf("%s", prefix);
+      if (o.is_num_row) {
+        printf("%d:", row_num);
+      }
+      printf("%s\n", buf);
+    }
+  }
+}
+
+bool reg_handler(Pattern *p, int regcomp_val, char buf[],
+                 bool is_invert_results) {
+  bool found = false;
+  for (int i = 0; i < p->count; i++) {
+    regex_t regex;
+    if (regcomp(&regex, p->val[i], regcomp_val)) {
+      perror("Ошибка компиляции рег. выражения\n");
+      exit(1);
+    }
+    if (regexec_whole_string(&regex, buf) == 0) {
+      found = true;
+    }
+    regfree(&regex);
+  }
+  return is_invert_results ? !found : found;
+}
+
+int regexec_whole_string(regex_t *regex, char buf[]) {
+  return regexec(regex, buf, 0, NULL, 0);
+}
+
+void concat_prefix(char dst[], char src[]) {
+  strcat(dst, src);
+  strcat(dst, ":");
+}
+
+void delete_new_line(char buf[]) {
+  int last_symb = (int)strlen(buf) - 1;
+  if (buf[last_symb] == '\n') {
+    buf[last_symb] = '\0';
+  }
+}
+
+void free_string(int count, char *string[]) {
+  for (int i = 0; i < count; i++) {
+    free(string[i]);
+  }
 }

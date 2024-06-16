@@ -9,26 +9,28 @@
 #include "parsing_grep.h"
 
 int main(int argc, char *argv[]) {
-    if (argc < 3) {
-        printf("Недостаточно аргументов\n");
-        return 0;
-    }
+  if (argc < 3) {
+    printf("Недостаточно аргументов\n");
+    exit(1);
+  }
 
-    regex_t regex;
-    char *files[argc];
-    // char *pattern = malloc(1000);
+  char *files[argc];
+  int file_c = 0;
 
-    int file_count = 0;
-    Grep_flags flags = {false, false, false, false, false, false};
-    Grep_behavior behavior = {false, false};
+  Pattern patterns = {0};
+  Option options = {false, false, false, false, false,
+                    false, false, false, false};
+  bool many_files = false;
 
-    char *error_parse_args = parse_args(argc, argv, &flags, &behavior, files, &file_count, &regex);
-    if (error_parse_args != NULL) {
-        printf("Неверный ключ %s", error_parse_args);
-        return 1;
-    }
+  char error_parse_args =
+      parse_args(argc, argv, &options, files, &file_c, &patterns);
+  if (error_parse_args != 0) {
+    fprintf(stderr, "Неверный ключ %c", error_parse_args);
+    exit(1);
+  }
 
-    output(files, flags, behavior, file_count, regex);
+  handler(files, options, many_files, file_c, &patterns);
 
-    return 0;
+  free_string(patterns.count, patterns.val);
+  return 0;
 }

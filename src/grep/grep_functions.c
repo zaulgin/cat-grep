@@ -1,13 +1,15 @@
 #include "grep_functions.h"
 // #define DEBUG 1
 
+// функция для освобождения памяти, выделенной для строки через malloc
 void free_string(int count, char *string[]) {
     for (int i = 0; i < count; i++) {
         free(string[i]);
     }
 }
 
-bool reg_handle(int pattern_c, char *patterns[], regex_t *regex, int regcomp_val, char buf[]) {
+bool reg_handle(int pattern_c, char *patterns[], regex_t *regex, int regcomp_val, char buf[],
+                bool is_only_match) {
     bool res = false;
     for (int i = 0; i < pattern_c; i++) {
         if (regcomp(regex, patterns[i], regcomp_val)) {
@@ -15,22 +17,39 @@ bool reg_handle(int pattern_c, char *patterns[], regex_t *regex, int regcomp_val
             printf("Ошибка компиляции рег. выражения\n");
             exit(1);
         }
-        if (!regexec_result(regex, buf)) {
-            res = true;
+        // todo Доделать
+        if (is_only_match) {
+            regmatch_t pmatch;
+            int start = 0;
+            while (!regexec(regex, buf + start, 1, &pmatch, 0)) {
+                printf("%.*s\n", pmatch.rm_eo - pmatch.rm_so, buf + start + pmatch.rm_so);
+                start += pmatch.rm_eo;
+            }
+        } else {
+            if (!regexec_whole_string(regex, buf)) {
+                res = true;
+            }
         }
         regfree(regex);
+    }
+    if (is_only_match) {
+        return false;
     }
     return res;
 }
 
-int regexec_result(regex_t *regex, char buf[]) { return regexec(regex, buf, 0, NULL, 0) == 0 ? 0 : 1; }
+int regexec_whole_string(regex_t *regex, char buf[]) {
+    // поиск вхождения: 0 если нашел, не 0 если не нашел
+    return regexec(regex, buf, 0, NULL, 0) == 0 ? 0 : 1;
+}
 
-void output(char *files[], Grep_flags flags, Grep_behavior behavior, int file_c, regex_t regex,
-            char *patterns[], int pattern_c) {
-    int regcomp_val = 0;
+void output(char *files[], Grep_flags flags, Grep_behavior behavior, int file_c, char *patterns[],
+            int pattern_c) {
+    regex_t regex;
+    int regcomp_val = 0;  // обычная регулярка
 
     if (flags.is_register_ignore) {
-        regcomp_val = REG_ICASE;
+        regcomp_val = REG_ICASE;  // REG_ICASE == 2
     }
 
     if (file_c > 1 && !flags.is_filename_ignore) {
@@ -48,8 +67,7 @@ void output(char *files[], Grep_flags flags, Grep_behavior behavior, int file_c,
     for (int i = 0; i < file_c; i++) {
         FILE *f = fopen(files[i], "r");
         if (f == NULL) {
-            if (!flags.is_file_error_ignore) {  // флаг -s - не выводит сообщение об
-                                                // ошибке если true
+            if (!flags.is_file_error_ignore) {  // флаг -s - не выводит сообщение об ошибке если true
                 printf("%s: Нет такого файла или каталога\n", files[i]);
             }
             continue;
@@ -76,9 +94,11 @@ void print_grep(Grep_flags flags, char prefix[], char *patterns[], int pattern_c
     while (fgets(buf, 1000, f)) {
         delete_new_line(buf);
 
-        row_num++;
+        if (flags.is_num_row) {
+            row_num++;
+        }
 
-        var_output = reg_handle(pattern_c, patterns, &regex, regcomp_val, buf);
+        var_output = reg_handle(pattern_c, patterns, &regex, regcomp_val, buf, flags.is_only_match);
 
         if (flags.is_invert_results) {  // флаг -v - инвертирует результаты
             var_output = !var_output;
@@ -90,6 +110,7 @@ void print_grep(Grep_flags flags, char prefix[], char *patterns[], int pattern_c
                 file_printed = true;
                 break;
             }
+
             if (flags.is_count_rows) {  // флаг -c выводит кол-во строк
                 count_rows++;
             } else {

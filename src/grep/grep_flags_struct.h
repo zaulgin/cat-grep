@@ -18,8 +18,8 @@ typedef struct {
 } Grep_flags;
 
 typedef struct {
-    bool many_files;         // количество файлов больше 1
-    bool is_single_pattern;  // единственный шаблон
+    bool many_files;      // количество файлов больше 1
+    bool single_pattern;  // единственный шаблон
 } Grep_behavior;
 
 #endif

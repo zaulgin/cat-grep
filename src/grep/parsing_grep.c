@@ -1,13 +1,14 @@
 #include "parsing_grep.h"
 
+// TODO пройтись по всем флагам -e сначала, т.к. файл может быть записан до паттерна, если -e true
 char parse_args(int argc, char *argv[], Grep_flags *flags, Grep_behavior *behavior, char *files[],
                 int *file_c, char *patterns[], int *pattern_c) {
     bool skip_next_arg = false;
     for (int i = 1; i < argc; i++) {
         if (argv[i][0] == '-' && (int)strlen(argv[i]) > 1) {
             for (int j = 1; j < (int)strlen(argv[i]); j++) {
-                char res = handle_flag(argv[i][j], flags, patterns, pattern_c,
-                                       (i + 1 < argc) ? argv[i + 1] : NULL, &skip_next_arg);
+                // TODO подумать??? возможно вернуть тернарник в next_arg
+                char res = handle_flag(argv[i][j], flags, patterns, pattern_c, argv[i + 1], &skip_next_arg);
                 if (res != 0) {
                     return res;
                 }
@@ -16,8 +17,9 @@ char parse_args(int argc, char *argv[], Grep_flags *flags, Grep_behavior *behavi
                 i++;
                 skip_next_arg = false;
             }
-        } else if (!behavior->is_single_pattern && !flags->is_many_patterns) {
-            behavior->is_single_pattern = true;
+            // TODO добавить обработку single_pattern в флаги -e и -f ???
+        } else if (!behavior->single_pattern && !flags->is_many_patterns) {
+            behavior->single_pattern = true;
             patterns[*pattern_c] = malloc(1000);
             strcpy(patterns[(*pattern_c)++], argv[i]);
         } else {
@@ -25,7 +27,7 @@ char parse_args(int argc, char *argv[], Grep_flags *flags, Grep_behavior *behavi
         }
     }
 
-    return '\0';
+    return 0;
 }
 
 char handle_flag(char flag, Grep_flags *flags, char *patterns[], int *pattern_c, char *next_arg,
@@ -62,6 +64,9 @@ char handle_flag(char flag, Grep_flags *flags, char *patterns[], int *pattern_c,
             patterns[*pattern_c] = malloc(1000);
             strcpy(patterns[(*pattern_c)++], next_arg);
             *skip_next_arg = true;
+            break;
+        case 'o':
+            flags->is_only_match = true;
             break;
         default:
             return flag;

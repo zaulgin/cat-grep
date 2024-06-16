@@ -7,12 +7,12 @@ int main() {
     char res_cat[1000];
     char res_s21_cat[1000];
     char tmp[1000], tmp2[1000];
-    FILE *f = fopen("combination_flags.txt", "r");
+    FILE *f = fopen("source/combination_flags.txt", "r");
     if (f == NULL) {
         printf("Нет такого файла или каталога\n");
         return 1;
     }
-    FILE *f_files = fopen("combination_files.txt", "r");
+    FILE *f_files = fopen("source/combination_files.txt", "r");
     if (f_files == NULL) {
         printf("Нет такого файла или каталога\n");
         return 1;
@@ -29,7 +29,7 @@ int main() {
         for (int i = 0; i < 7; i++) {
             printf("\n");
 
-            FILE *f_files = fopen("combination_files.txt", "r");
+            FILE *f_files = fopen("source/combination_files.txt", "r");
             while (fgets(buff2, 1000, f_files) != NULL) {
                 strcpy(tmp, res_cat);
                 buff2[strcspn(buff2, "\n")] = ' ';
@@ -41,7 +41,7 @@ int main() {
                 system(tmp);
             }
             fclose(f_files);
-            FILE *f_files2 = fopen("combination_files.txt", "r");
+            FILE *f_files2 = fopen("source/combination_files.txt", "r");
             while (fgets(buff2, 1000, f_files) != NULL) {
                 strcpy(tmp2, res_s21_cat);
                 buff2[strcspn(buff2, "\n")] = ' ';

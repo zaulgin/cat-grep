@@ -1,0 +1,7 @@
+source/test.txt
+source/test2.txt
+source/test3.txt
+source/test.txt source/test2.txt
+source/test.txt source/test3.txt
+source/test2.txt source/test3.txt
+source/test.txt source/test2.txt source/test3.txt

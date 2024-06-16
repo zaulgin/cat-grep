@@ -17,5 +17,6 @@ bool reg_handle(int pattern_c, char *patterns[], regex_t *regex, int regcomp_val
                 bool is_only_match);
 int regexec_whole_string(regex_t *regex, char buf[]);
 void free_string(int count, char *string[]);
+void concat_prefix(char dst[], char src[]);
 
 #endif

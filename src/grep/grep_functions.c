@@ -117,15 +117,13 @@ void print_grep(Grep_flags flags, char prefix[], char *patterns[], int pattern_c
                 if (flags.is_num_row) {
                     char temp[12];
                     sprintf(temp, "%d", row_num);
-                    strcat(prefix, temp);
-                    strcat(prefix, ":");
+                    concat_prefix(prefix, temp);
                 }
                 printf("%s%s\n", prefix, buf);
             }
         }
         strcpy(prefix, "");
-        strcat(prefix, filename);
-        strcat(prefix, ":");
+        concat_prefix(prefix, filename);
         var_output = false;
     }
 
@@ -134,10 +132,14 @@ void print_grep(Grep_flags flags, char prefix[], char *patterns[], int pattern_c
     }
 
     if (flags.is_count_rows) {
-        strcat(prefix, filename);
-        strcat(prefix, ":");
+        concat_prefix(prefix, filename);
         printf("%s%d\n", prefix, count_rows);
     }
+}
+
+void concat_prefix(char dst[], char src[]) {
+    strcat(dst, src);
+    strcat(dst, ":");
 }
 
 void delete_new_line(char buf[]) {

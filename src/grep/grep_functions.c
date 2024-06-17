@@ -6,7 +6,7 @@ void handler(char *files[], Option o, bool many_files, int file_c, Pattern *p) {
 
   for (int i = 0; i < file_c; i++) {
     FILE *fstream = fopen(files[i], "r");
-    if (fstream == NULL) {
+    if (!fstream) {
       if (!o.is_file_error_ignore) {
         fprintf(stderr, "grep: %s: No such file or directory\n", files[i]);
       }
@@ -14,7 +14,7 @@ void handler(char *files[], Option o, bool many_files, int file_c, Pattern *p) {
     }
     char prefix[1000] = "";
     if (many_files) {
-      concat_prefix(prefix, files[i]);
+      sprintf(prefix, "%s:", files[i]);
     }
 
     if (o.is_only_filename) {
@@ -74,7 +74,7 @@ void print_matches(Option o, char prefix[], Pattern *p, int regcomp_val,
       for (int i = 0; i < p->count; i++) {
         regex_t regex;
         if (regcomp(&regex, p->val[i], regcomp_val)) {
-          perror("Ошибка компиляции рег. выражения\n");
+          fprintf(stderr, "Ошибка компиляции рег. выражения\n");
           exit(1);
         }
 
@@ -130,24 +130,15 @@ bool reg_handler(Pattern *p, int regcomp_val, char buf[],
   for (int i = 0; i < p->count; i++) {
     regex_t regex;
     if (regcomp(&regex, p->val[i], regcomp_val)) {
-      perror("Ошибка компиляции рег. выражения\n");
+      fprintf(stderr, "Ошибка компиляции рег. выражения\n");
       exit(1);
     }
-    if (regexec_whole_string(&regex, buf) == 0) {
+    if (!regexec(&regex, buf, 0, NULL, 0)) {
       found = true;
     }
     regfree(&regex);
   }
   return is_invert_results ? !found : found;
-}
-
-int regexec_whole_string(regex_t *regex, char buf[]) {
-  return regexec(regex, buf, 0, NULL, 0);
-}
-
-void concat_prefix(char dst[], char src[]) {
-  strcat(dst, src);
-  strcat(dst, ":");
 }
 
 void delete_new_line(char buf[]) {
@@ -157,7 +148,7 @@ void delete_new_line(char buf[]) {
   }
 }
 
-void free_string(int count, char *string[]) {
+void free_strings(int count, char *string[]) {
   for (int i = 0; i < count; i++) {
     free(string[i]);
   }

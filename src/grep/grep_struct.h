@@ -1,8 +1,8 @@
 #include <regex.h>
 #include <stdbool.h>
 
-#ifndef GREP_FLAGS_H
-#define GREP_FLAGS_H
+#ifndef GREP_STRUCT_H
+#define GREP_STRUCT_H
 
 typedef struct {
   bool is_register_ignore;  // -i игнорирует регистр
@@ -19,8 +19,9 @@ typedef struct {
 } Option;
 
 typedef struct {
-  char *val[1000];
+  char **val;
   int count;
+  int size;
 } Pattern;
 
 #endif

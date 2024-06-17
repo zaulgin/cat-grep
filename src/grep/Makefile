@@ -4,7 +4,7 @@ LDFLAGS=-Wall -Wextra -Werror
 
 EXECUTABLE=s21_grep
 
-SOURCES=s21_grep.c parsing_grep.c grep_functions.c
+SOURCES=s21_grep.c grep_parsing.c grep_functions.c
 
 OBJECTS=$(SOURCES:.c=.o)
 

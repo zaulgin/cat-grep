@@ -1,0 +1,20 @@
+
+
+You can extract the files from the Skins folder and run them on your own installation.
+This installation of Zandronum 3.0 alpha that I included has everything configured for optimal performance.
+
+If you are going to move it to your own installation, remember to disable the Enhanced Night Vision Mode.
+This instalation is configured for a 1600x900 default resolution, on windowed mode.
+You can change it to fullscreen and change it to other resolutions by going
+
+
+
+to options > set video mode.
+You can run either bd64v1_main with other map packs or vanilla Doom maps, or bd64v1_maps alone to play these maps
+with custom gameplay mods.
+
+You can control the amount of blood and gore by opening the console and typing bd_bloodamount * (* is a number from 1 to 4)
+You can enable the "janitor" to make blood and gore disappear after some time by typing in the console bd_lowgraphicsmode 1 (type
+bd_lowgraphicsmode 0 to disable)
+
+

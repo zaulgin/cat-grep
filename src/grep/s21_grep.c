@@ -16,7 +16,6 @@ int main(int argc, char *argv[]) {
   Pattern patterns = {NULL, 0, 0};
   Option options = {false, false, false, false, false,
                     false, false, false, false};
-  bool many_files = false;
 
   char error_parse_args =
       parse_args(argc, argv, &options, files, &file_c, &patterns);
@@ -27,7 +26,7 @@ int main(int argc, char *argv[]) {
     exit(1);
   }
 
-  handler(files, options, many_files, file_c, &patterns);
+  handler(files, options, file_c, &patterns);
 
   free_strings(patterns.count, patterns.val);
   free(patterns.val);

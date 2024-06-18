@@ -2,6 +2,7 @@
 
 char parse_args(int argc, char *argv[], Option *o, char *files[], int *file_c,
                 Pattern *p) {
+  // проходится только по флагам
   for (int i = 1; i < argc; i++) {
     if (argv[i][0] == '-' && (int)strlen(argv[i]) > 1) {
       for (int j = 1; j < (int)strlen(argv[i]); j++) {
@@ -10,13 +11,11 @@ char parse_args(int argc, char *argv[], Option *o, char *files[], int *file_c,
           return res;
         }
         if (res == 'e') {
-          o->is_pattern = true;
           char *buf = strchr(argv[i], 'e') + 1;
           add_pattern(p, buf);
           break;
         }
         if (res == 'f') {
-          o->is_pattern = true;
           char *buf = strchr(argv[i], 'f') + 1;
           handle_pattern_file(buf, p);
           break;
@@ -26,6 +25,7 @@ char parse_args(int argc, char *argv[], Option *o, char *files[], int *file_c,
     }
   }
 
+  // цикл идет по файлам и одиночным паттернам
   for (int k = 1; k < argc; k++) {
     if (!strcmp(argv[k], "")) {
       continue;
@@ -65,20 +65,18 @@ char handle_flag(char flag, char next_char, Option *o, Pattern *p,
       o->is_filename_ignore = true;
       break;
     case 'f':
+      o->is_pattern = true;
       if (next_char != 0) {
-        o->is_pattern = true;
         return flag;
       }
-      o->is_pattern = true;
       handle_pattern_file(next_arg, p);
       strcpy(next_arg, "");
       break;
     case 'e':
+      o->is_pattern = true;
       if (next_char != 0) {
-        o->is_pattern = true;
         return flag;
       }
-      o->is_pattern = true;
       add_pattern(p, next_arg);
       strcpy(next_arg, "");
       break;
@@ -96,10 +94,10 @@ void handle_pattern_file(const char *filename, Pattern *p) {
   if (!fstream) {
     fprintf(stderr, "grep: %s: No such file or directory\n", filename);
     free_strings(p->count, p->val);
+    free(p->val);
     exit(1);
   }
   char buf[1000];
-
   while (fgets(buf, sizeof(buf), fstream)) {
     delete_new_line(buf);
     add_pattern(p, buf);
@@ -111,15 +109,7 @@ void add_pattern(Pattern *p, const char *pattern) {
   if (p->count >= p->size) {
     p->size = p->size == 0 ? 10 : p->size * 2;
     p->val = realloc(p->val, p->size * sizeof(char *));
-    if (!p->val) {
-      fprintf(stderr, "Ошибка выделения памяти\n");
-      exit(1);
-    }
   }
   p->val[p->count] = malloc(strlen(pattern) + 1);
-  if (!p->val[p->count]) {
-    fprintf(stderr, "Ошибка выделения памяти\n");
-    exit(1);
-  }
   strcpy(p->val[p->count++], pattern);
 }

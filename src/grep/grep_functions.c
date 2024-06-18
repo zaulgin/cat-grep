@@ -1,8 +1,8 @@
 #include "grep_functions.h"
 
-void handler(char *files[], Option o, bool many_files, int file_c, Pattern *p) {
+void handler(char *files[], Option o, int file_c, Pattern *p) {
   int regcomp_val = o.is_register_ignore ? REG_ICASE : 0;
-  many_files = (file_c > 1 && !o.is_filename_ignore);
+  bool many_files = (file_c > 1 && !o.is_filename_ignore);
 
   for (int i = 0; i < file_c; i++) {
     FILE *fstream = fopen(files[i], "r");

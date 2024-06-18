@@ -4,7 +4,7 @@ LDFLAGS=-Wall -Wextra -Werror
 
 EXECUTABLE=s21_cat
 
-SOURCES=s21_cat.c parsing.c cat_functions.c
+SOURCES=s21_cat.c cat_parsing.c cat_functions.c
 
 OBJECTS=$(SOURCES:.c=.o)
 

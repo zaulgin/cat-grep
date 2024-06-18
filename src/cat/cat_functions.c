@@ -57,12 +57,12 @@ void print_files(char *files[], Cat_flags *flags, int file_count) {
       if (flags->is_nonprinting_chars) {
         if ((unsigned char)ch > 127) {
           char buf[] = {ch, 0};
-          char uc;
           for (int i = 0; i < (int)strlen(buf); i++) {
-            uc = (unsigned char)buf[i];
-            uc = uc & 127;
+            char uc = (unsigned char)buf[i] & 127;
             if (uc < 32) {
               printf("M-^%c", uc + 64);
+            } else if (uc == 127) {
+              printf("M-^?");
             } else {
               printf("M-%c", uc);
             }

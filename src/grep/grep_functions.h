@@ -8,7 +8,7 @@
 #ifndef GREP_FUNCTIONS_H
 #define GREP_FUNCTIONS_H
 
-void handler(char *files[], Option o, bool many_files, int file_c, Pattern *p);
+void handler(char *files[], Option o, int file_c, Pattern *p);
 void delete_new_line(char buf[]);
 void print_string(Option o, char prefix[], Pattern *p, int regcomp_val,
                   FILE *fstream);

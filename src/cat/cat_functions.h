@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "cat_flags_struct.h"
+#include "cat_struct.h"
 
 #ifndef CAT_FUNCTIONS_H
 #define CAT_FUNCTIONS_H

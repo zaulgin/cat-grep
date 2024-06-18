@@ -1,6 +1,6 @@
 #include <stdbool.h>
-#ifndef CAT_FLAGS_H
-#define CAT_FLAGS_H
+#ifndef CAT_STRUCT_H
+#define CAT_STRUCT_H
 
 // TODO флаги переделать, отдефайнить и запихать в статик массив стрингов
 #define GNU_non_empty_line_numbers "--number-nonblank"

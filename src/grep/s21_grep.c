@@ -2,9 +2,12 @@
 сделать проверку cpp check
 сделать проверку valgrind
 */
+#include <locale.h>
+
 #include "grep_parsing.h"
 
 int main(int argc, char *argv[]) {
+  setlocale(LC_ALL, "ru_RU.UTF-8");
   if (argc < 3) {
     fprintf(stderr, "Недостаточно аргументов\n");
     exit(1);

@@ -10,12 +10,14 @@ void print_files(char *files[], Cat_flags *flags, int file_count) {
       continue;
     }
 
+    int res;
     char ch;
     char tmp_ch;
 
     int empty_line_count = 0;
 
-    while ((ch = fgetc(f)) != EOF) {
+    while ((res = fgetc(f)) != EOF) {
+      ch = res;
       bool tabs = false;
       if (flags->is_delete_empty_line) {
         if (tmp_ch == '\n') {

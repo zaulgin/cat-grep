@@ -79,15 +79,18 @@ int main() {
       for (int j = 0; j < 3; j++) {
         strcat(with_files_grep, " ");
         strcat(with_files_s21_grep, " ");
-
+        strcat(with_files_grep, files[j]);
+        strcat(with_files_s21_grep, files[j]);
+        output_grep = malloc(10000);
+        output_s21_grep = malloc(10000);
         sprintf(output_grep, "%s%s%s >> log_grep.log", out_grep,
                 with_pattern_grep, with_files_grep);
         sprintf(output_s21_grep, "%s%s%s >> log_s21_grep.log", out_s21_grep,
                 with_pattern_s21_grep, with_files_s21_grep);
         system(output_grep);
         system(output_s21_grep);
-        strcpy(output_grep, "");
-        strcpy(output_s21_grep, "");
+        free(output_grep);
+        free(output_s21_grep);
       }
     }
 

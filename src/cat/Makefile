@@ -23,6 +23,6 @@ $(EXECUTABLE): $(OBJECTS)
 	$(CC) $(CFLAGS) $< -o $@
 
 clean:
-	rm -rf $(OBJECTS) $(EXECUTABLE) $(EXECUTABLE_TEST)
+	rm -rf $(OBJECTS) $(EXECUTABLE) $(EXECUTABLE_TEST) *.diff *.log
 
 rebuild: clean all

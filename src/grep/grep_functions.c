@@ -75,6 +75,8 @@ void print_matches(Option o, char prefix[], Pattern *p, int regcomp_val,
         regex_t regex;
         if (regcomp(&regex, p->val[i], regcomp_val)) {
           fprintf(stderr, "Ошибка компиляции рег. выражения\n");
+          free_strings(p->count, p->val);
+          free(p->val);
           exit(1);
         }
 
@@ -131,6 +133,8 @@ bool reg_handler(Pattern *p, int regcomp_val, char buf[],
     regex_t regex;
     if (regcomp(&regex, p->val[i], regcomp_val)) {
       fprintf(stderr, "Ошибка компиляции рег. выражения\n");
+      free_strings(p->count, p->val);
+      free(p->val);
       exit(1);
     }
     if (!regexec(&regex, buf, 0, NULL, 0)) {

@@ -3,74 +3,56 @@
 #include <string.h>
 
 int main() {
-  char buff[1000], buff2[1000];
-  char res_cat[1000];
-  char res_s21_cat[1000];
-  char tmp[1000], tmp2[1000];
-  FILE *f = fopen("source/combination_flags.txt", "r");
-  if (f == NULL) {
-    printf("Нет такого файла или каталога\n");
-    return 1;
-  }
-  FILE *f_files = fopen("source/combination_files.txt", "r");
-  if (f_files == NULL) {
-    printf("Нет такого файла или каталога\n");
-    return 1;
-  }
+  char files[][20] = {"src_test/test1.txt", "src_test/test2.txt",
+                      "src_test/test3.txt"};
+  char options[][2] = {"A", "t", "T", "e", "E", "s", "n", "b", "v"};
+  char gnu_options[][18] = {"--number-nonblank", "--number", "--squeeze-blank"};
 
-  for (int i = 0; i < 91; i++) {
-    fgets(buff, 1000, f);
-    strcpy(res_cat, "cat ");
-    strcpy(res_s21_cat, "./s21_cat ");
-    buff[strcspn(buff, "\n")] = ' ';
-    strcat(res_cat, buff);
-    strcat(res_s21_cat, buff);
+  char flags_str[100] = "";
+  char files_str[400] = "";
+  char gnu_flags_str[300] = "";
+  char output_cat[1000];
+  char output_s21_cat[1000];
 
-    for (int i = 0; i < 7; i++) {
-      printf("\n");
+  for (int i = 0; i < 9; i++) {
+    strcat(flags_str, options[i]);
 
-      FILE *f_files = fopen("source/combination_files.txt", "r");
-      while (fgets(buff2, 1000, f_files) != NULL) {
-        strcpy(tmp, res_cat);
-        buff2[strcspn(buff2, "\n")] = ' ';
-        strcat(tmp, buff2);
+    for (int k = 0; k < 3; k++) {
+      strcat(gnu_flags_str, " ");
+      strcat(gnu_flags_str, gnu_options[k]);
 
-        strcat(tmp, ">> log_cat.log\n");
+      for (int j = 0; j < 3; j++) {
+        strcat(files_str, " ");
+        strcat(files_str, files[j]);
 
-        printf("%s", tmp);
-        system(tmp);
+        snprintf(output_cat, sizeof(output_cat), "cat -%s%s%s >> log_grep.log",
+                 flags_str, gnu_flags_str, files_str);
+        snprintf(output_s21_cat, sizeof(output_s21_cat),
+                 "./s21_cat -%s%s%s >> log_s21_grep.log", flags_str,
+                 gnu_flags_str, files_str);
+
+        system(output_cat);
+        system(output_s21_cat);
+
+        printf("  %s\n", output_cat);
+        printf("  %s\n", output_s21_cat);
       }
-      fclose(f_files);
-      FILE *f_files2 = fopen("source/combination_files.txt", "r");
-      while (fgets(buff2, 1000, f_files2) != NULL) {
-        strcpy(tmp2, res_s21_cat);
-        buff2[strcspn(buff2, "\n")] = ' ';
-        strcat(tmp2, buff2);
 
-        strcat(tmp2, ">> log_s21_cat.log\n");
-
-        printf("%s", tmp2);
-        system(tmp2);
-      }
-      fclose(f_files2);
+      memset(files_str, 0, sizeof(files_str));
     }
-  }
-  fclose(f);
 
-  // сравниваю через diff два файла. Команда diff служит для сравнения текстовых
-  // файлов. результат сравнения пишу в файл test/changes.diff при несовпадении
-  // выводит текст TEST FAILED
-  char res[1000];
-  system("diff log_cat.log log_s21_cat.log > changes.diff");
-  FILE *g = fopen("changes.diff", "r");
-  if (fgets(res, 1000, g) != NULL) {
+    memset(gnu_flags_str, 0, sizeof(gnu_flags_str));
+  }
+
+  system("diff log_grep.log log_s21_grep.log > changes.diff");
+  FILE *f = fopen("changes.diff", "r");
+  char res[2000];
+  if (fgets(res, sizeof(res), f)) {
     printf("TEST FAILED\n");
   } else {
     printf("TEST SUCCESS\n");
-    system("rm *.log *.diff");
   }
 
-  fclose(g);
-
+  fclose(f);
   return 0;
 }

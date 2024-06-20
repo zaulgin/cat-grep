@@ -1,9 +1,11 @@
+#include <stdlib.h>
+
 #include "cat_parsing.h"
 
 int main(int argc, char *argv[]) {
   if (argc < 2) {
-    printf("Недостаточно аргументов\n");
-    return 0;
+    fprintf(stderr, "Недостаточно аргументов\n");
+    exit(1);
   }
 
   char *files[argc];
@@ -13,8 +15,8 @@ int main(int argc, char *argv[]) {
 
   char *error_parse_args = parse_args(argc, argv, &flags, files, &file_count);
   if (error_parse_args != NULL) {
-    printf("Неверный ключ %s", error_parse_args);
-    return 1;
+    fprintf(stderr, "Неверный ключ %s", error_parse_args);
+    exit(1);
   }
 
   print_files(files, &flags, file_count);

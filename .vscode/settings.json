@@ -1,5 +1,7 @@
 {
     "files.associations": {
-        "grep_functions.h": "c"
+        "grep_functions.h": "c",
+        "grep_parsing.h": "c",
+        "regex.h": "c"
     }
 }

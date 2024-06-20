@@ -2,7 +2,7 @@
 
 void print_files(char *files[], Cat_flags *flags, int file_count) {
   int row_count = 1;
-
+  char tmp_ch = '\0';
   for (int i = 0; i < file_count; i++) {
     FILE *f = fopen(files[i], "r");
     if (f == NULL) {
@@ -12,12 +12,11 @@ void print_files(char *files[], Cat_flags *flags, int file_count) {
 
     int res;
     char ch;
-    char tmp_ch;
 
     int empty_line_count = 0;
 
     while ((res = fgetc(f)) != EOF) {
-      ch = res;
+      ch = (char)res;
       bool tabs = false;
       if (flags->is_delete_empty_line) {
         if (tmp_ch == '\n') {
